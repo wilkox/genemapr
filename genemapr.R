@@ -1,8 +1,6 @@
 library(grid)
 
-pdf("output.pdf")
-
-# Function to draw a gene
+# Draw a gene
 # Draws to the current viewport, in the native coordinate system
 draw_gene <- function(Start, End, Fill) {
 
@@ -20,7 +18,7 @@ draw_gene <- function(Start, End, Fill) {
   )
 }
 
-# Function to draw all genes in a molecule
+# Draw a molecule
 # Creates a new viewport for the molecule, pushed to parent viewport in the
 # specified layout row and column
 draw_molecule <- function(Genes, Range = NULL, LayoutRow, LayoutCol) {
@@ -92,26 +90,56 @@ draw_track_label <- function(LabelText, LayoutRow, LayoutCol) {
 
 }
 
+# Set up plot area with a grid layout
+set_up_plot_area <- function(Tracks = 1, OutputHeight, OutputWidth) {
+
+  # Set up master drawing area (basically an inset rectangle inside the output
+  # page, just to have some margins around the drawing area)
+  viewport(height = 0.8 * OutputHeight, width = 0.8 * OutputWidth) %>%
+    pushViewport
+
+  # Draw big red border around plot area
+  grid.rect(gp = gpar(col = "red"))
+
+  # Set up plot area, with grid layout
+  viewport(
+    layout = grid.layout(
+      Tracks,
+      2,
+      widths = unit(c(0.2, 0.8), "npc"),
+      heights = unit(1 / Tracks, "npc")
+    ),
+    height = unit(1, "npc"),
+    width = unit(1, "npc")
+    ) %>%
+    pushViewport
+}
+
+# Testing zone -----------------------------------------------
+
 # Example gene dataset
 Genes <- data.frame(
   Start = c(10, 40, 80),
   End = c(20, 55, 71),
-  Fill = c("Red", "White", "Blue")
+  Fill = c("Red", "White", "Blue"),
+  Track = c("Fancypants", "Fancypants", "Snortyhorse")
 )
 
-# Set up a grid layout. Column 1 is for track labels, column 2 is for drawing
-# molecules.
-grid.layout(
-  1,
-  2,
-  widths = unit(c(0.2, 0.6), "npc"),
-  heights = unit(0.8, "npc")
-  ) %>%
-  viewport(layout = .) %>%
-  pushViewport
+pdf("output.pdf", height = 10, width = 10)
 
-draw_molecule(Genes, LayoutRow = 1, LayoutCol = 2)
+set_up_plot_area(
+  Tracks = 3,
+  OutputHeight = unit(10, "inches"),
+  OutputWidth = unit(10, "inches")
+)
 
-draw_track_label("Example", LayoutRow = 1, LayoutCol = 1)
+draw_molecule(Genes %>% filter(Track == "Fancypants"), LayoutRow = 1, LayoutCol = 2)
+draw_track_label("Fancypants", LayoutRow = 1, LayoutCol = 1)
+
+draw_molecule(Genes %>% filter(Track == "Snortyhorse"), LayoutRow = 2, LayoutCol = 2)
+draw_track_label("Snortyhorse", LayoutRow = 2, LayoutCol = 1)
+
+draw_molecule(Genes, LayoutRow = 3, LayoutCol = 2)
+draw_track_label("All", LayoutRow = 3, LayoutCol = 1)
 
 dev.off()
