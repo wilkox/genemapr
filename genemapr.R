@@ -147,8 +147,6 @@ draw_label <- function(Start, End, Label) {
 
 }
 
-# Testing zone -----------------------------------------------
-
 # Example gene dataset
 Genes <- data.frame(
   Start = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90),
@@ -157,6 +155,85 @@ Genes <- data.frame(
   Track = rep(c("Fancypants", "Snortyhorse"), 5),
   Label = str_c("gene", 1:10)
 )
+
+# Function to set up a genemap plot object
+genemap <- function(data = NULL, mapping = NULL) {
+
+  # Initialise genemap plot object
+  genemap_obj <- structure(list(), class = "genemap")
+
+  # Process data argument. Data must be a data frame (or tibble) if present, but
+  # doesn't have to be present (can be passed directly to elements)
+  if (is.null(data)) {
+    genemap_obj$data <- NULL
+
+  } else {
+
+    # Handle non-data frame data
+    if (! is.data.frame(data)) {
+      stop("Data must be a data frame (or tibble)", call. = F)
+    }
+
+    # Add data to plot object
+    genemap_obj$data <- data
+  }
+
+  # Process mapping argument. There is no requirement that mappings be provided
+  # at this point, as they can be provided directly to elements. If provided,
+  # mapping must be a character vector. Mappings must belong to the list of
+  # known aesthetic mappings. There is no requirement that the mapped column be
+  # present in the data, as it might be present in data provided to an element.
+  # If there are duplicate mappings, a warning will be omitted and earlier
+  # mappings will be overwritten.
+  if (is.null(mapping)) {
+    genemap_obj$mapping <- NULL
+  
+  } else {
+
+    # Mapping must be a named character vector of length > 0
+    if ((! is.character(mapping)) |
+        (length(mapping) == 0) |
+        (is.null(names(mapping)))) {
+      stop(
+        "Mapping must be a named character vector with at least one element",
+        call. = F
+      )
+    }
+
+    # This defines known aesthetic mappings
+    known_mappings <- c("start", "end", "track", "fill", "label")
+  
+    mapping_processed <- character()
+    for (m in names(mapping)) {
+
+      # Check that the mapping is known
+      if (!m %in% known_mappings) {
+        stop(paste0("Unknown aesthetic ‘", m, "’"), call. = F)
+      }
+
+      # Warn if the mapping is a duplicate
+      if (m %in% names(mapping_processed)) {
+        warning(
+          "Aesthetic ‘",
+          m,
+          "’ mapped more than once, overwriting previous mapping",
+          call. = F
+        )
+      }
+
+      # Add mapping to list
+      mapping_processed[[m]] <- mapping[[m]]
+    }
+
+    # Add mappings to genemap object
+    genemap_obj$mapping <- mapping_processed
+
+  }
+
+  # Return genemap object
+  genemap_obj
+
+}
 
 pdf("output.pdf", height = 10, width = 10)
 
