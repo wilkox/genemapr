@@ -1,4 +1,5 @@
 library(grid)
+library(stringr) # TESTING ONLY
 
 # Draw a gene
 # Draws to the current viewport, in the native coordinate system
@@ -7,8 +8,17 @@ draw_gene <- function(Start, End, Fill) {
   # Determine orientation
   Orientation <- ifelse(End > Start, 1 , -1)
 
+  # Arrow head width defaults to 4 mm, unless the gene is shorter in which case
+  # the gene is 100% arrowhead
+  ArrowHeadWidth <- unit(4, "mm") %>% convertWidth("native")
+  ArrowHeadWidth <- ifelse(
+    as.numeric(ArrowHeadWidth) > abs(Start - End),
+    abs(Start - End),
+    ArrowHeadWidth
+  )
+
   # Calculate x-position of flange
-  Flange <- (-Orientation * 0.2 * abs(Start - End)) + End
+  Flange <- (-Orientation * ArrowHeadWidth) + End
 
   # Draw gene
   grid.polygon(
@@ -119,10 +129,10 @@ set_up_plot_area <- function(Tracks = 1, OutputHeight, OutputWidth) {
 
 # Example gene dataset
 Genes <- data.frame(
-  Start = c(10, 40, 80),
-  End = c(20, 55, 71),
-  Fill = c("Red", "White", "Blue"),
-  Track = c("Fancypants", "Fancypants", "Snortyhorse")
+  Start = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90),
+  End =   c(1, 12, 23, 34, 45, 56, 67, 78, 89, 100),
+  Fill = rep(c("red", "blue"), 5),
+  Track = rep(c("Fancypants", "Snortyhorse"), 5)
 )
 
 pdf("output.pdf", height = 10, width = 10)
