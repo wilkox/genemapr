@@ -73,6 +73,15 @@ draw_molecule <- function(Genes, Range = NULL, LayoutRow, LayoutCol) {
       Fill = Gene$Fill
     ))
 
+  # Label each gene
+  Genes %>%
+    split(1:nrow(.)) %>%
+    lapply(function(Gene) draw_label(
+      Start = Gene$Start,
+      End = Gene$End,
+      Label = Gene$Label
+    ))
+
   # Return to parent viewport
   upViewport()
 
@@ -125,6 +134,19 @@ set_up_plot_area <- function(Tracks = 1, OutputHeight, OutputWidth) {
     pushViewport
 }
 
+# Add label for a gene
+# Assumes we are already in the correct viewport
+draw_label <- function(Start, End, Label) {
+
+  grid.text(
+    Label,
+    x = unit(mean(c(Start, End)), "native"),
+    just = "centre",
+    gp = gpar(col = "white")
+  )
+
+}
+
 # Testing zone -----------------------------------------------
 
 # Example gene dataset
@@ -132,7 +154,8 @@ Genes <- data.frame(
   Start = c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90),
   End =   c(1, 12, 23, 34, 45, 56, 67, 78, 89, 100),
   Fill = rep(c("red", "blue"), 5),
-  Track = rep(c("Fancypants", "Snortyhorse"), 5)
+  Track = rep(c("Fancypants", "Snortyhorse"), 5),
+  Label = str_c("gene", 1:10)
 )
 
 pdf("output.pdf", height = 10, width = 10)
