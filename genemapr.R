@@ -201,7 +201,7 @@ genemap <- function(data = NULL, mapping = NULL) {
     }
 
     # This defines known aesthetic mappings
-    known_mappings <- c("start", "end", "track", "fill", "label")
+    known_mappings <- c("start", "end", "track", "molecule", "fill", "label")
   
     mapping_processed <- character()
     for (m in names(mapping)) {
@@ -230,9 +230,57 @@ genemap <- function(data = NULL, mapping = NULL) {
 
   }
 
+  # Initialise elements list
+  genemap_obj$elements <- list()
+
   # Return genemap object
   genemap_obj
+}
 
+# Gene element
+gene_element <- function(data = NULL, mapping = NULL) {
+
+  # Initialise gene element object
+  gene_element_obj <- structure(list(), class = c("genemap", "element"))
+
+  # Set type
+  gene_element_obj$type <- "gene"
+
+  # Handle data and mapping
+  if (! is.null(data) & is.null(mapping)) {
+    stop(
+      "Haven't yet implemented passing data and mapping directly to element",
+      call. = F
+    )
+  }
+
+  # Return gene element object
+  gene_element_obj
+}
+
+# Overload `+` operator to allow genemapr elements to be easily combined
+`+.genemap` <- function(x, y) {
+
+  # LHS should always be a genemap plot object
+  if (!identical(class(x), c("genemap"))) {
+    stop(
+      "Initialise the genemap with ‘genemap()’ before adding elements or scales",
+      call. = F
+    )
+  }
+
+  # For now, only handles adding element to genemap
+  if (!"element" %in% class(y)) {
+    stop("Haven't yet implemented adding anything but elements", call. = F)
+  }
+
+  # Add element
+  if (identical(class(y), c("genemap", "element"))) {
+    x$elements <- c(x$elements, y)
+  }
+
+  # Return genemap plot object
+  x
 }
 
 pdf("output.pdf", height = 10, width = 10)
