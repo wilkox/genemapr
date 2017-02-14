@@ -83,79 +83,71 @@ Genes <- data.frame(
   Label = str_c("gene", 1:10)
 )
 
+# Validate data
+validate_data <- function(data) {
+
+  # Must be a data frame or tibble
+  if (! is.data.frame(data)) {
+    stop("Data must be a data frame (or tibble)", call. = F)
+  }
+
+  # Return validated data
+  data
+
+}
+
+# Validate mapping
+validate_mapping <- function(mapping) {
+
+  # Mapping must be a named character vector of length > 0
+  if ((! is.character(mapping)) | (length(mapping) == 0) | (is.null(names(mapping)))) {
+    stop(
+      "Mapping must be a named character vector with at least one element",
+      call. = F
+    )
+  }
+
+  # This defines known aesthetic mappings
+  known_mappings <- c("start", "end", "track", "molecule", "fill", "label")
+  
+  # Process mappings individually
+  mapping_processed <- character()
+  for (m in names(mapping)) {
+
+    # Check that the mapping is known
+    if (!m %in% known_mappings) {
+      stop(paste0("Unknown aesthetic ‘", m, "’"), call. = F)
+    }
+
+    # Warn if the mapping is a duplicate
+    if (m %in% names(mapping_processed)) {
+      warning(
+        "Aesthetic ‘",
+        m,
+        "’ mapped more than once, overwriting previous mapping",
+        call. = F
+      )
+    }
+
+    # Add mapping to list
+    mapping_processed[[m]] <- mapping[[m]]
+  }
+
+  # Return processed mapping
+  mapping_processed
+}
+
 # Function to set up a genemap plot object
 genemap <- function(data = NULL, mapping = NULL) {
 
   # Initialise genemap plot object
   genemap_obj <- structure(list(), class = "genemap")
 
-  # Process data argument. Data must be a data frame (or tibble) if present, but
-  # doesn't have to be present (can be passed directly to elements)
-  if (is.null(data)) {
-    genemap_obj$data <- NULL
+  # Validate data and add to plot object
+  genemap_obj$data <- validate_data(data)
 
-  } else {
-
-    # Handle non-data frame data
-    if (! is.data.frame(data)) {
-      stop("Data must be a data frame (or tibble)", call. = F)
-    }
-
-    # Add data to plot object
-    genemap_obj$data <- data
-  }
-
-  # Process mapping argument. There is no requirement that mappings be provided
-  # at this point, as they can be provided directly to elements. If provided,
-  # mapping must be a character vector. Mappings must belong to the list of
-  # known aesthetic mappings. There is no requirement that the mapped column be
-  # present in the data, as it might be present in data provided to an element.
-  # If there are duplicate mappings, a warning will be omitted and earlier
-  # mappings will be overwritten.
-  if (is.null(mapping)) {
-    genemap_obj$mapping <- NULL
-  
-  } else {
-
-    # Mapping must be a named character vector of length > 0
-    if ((! is.character(mapping)) |
-        (length(mapping) == 0) |
-        (is.null(names(mapping)))) {
-      stop(
-        "Mapping must be a named character vector with at least one element",
-        call. = F
-      )
-    }
-
-    # This defines known aesthetic mappings
-    known_mappings <- c("start", "end", "track", "molecule", "fill", "label")
-  
-    mapping_processed <- character()
-    for (m in names(mapping)) {
-
-      # Check that the mapping is known
-      if (!m %in% known_mappings) {
-        stop(paste0("Unknown aesthetic ‘", m, "’"), call. = F)
-      }
-
-      # Warn if the mapping is a duplicate
-      if (m %in% names(mapping_processed)) {
-        warning(
-          "Aesthetic ‘",
-          m,
-          "’ mapped more than once, overwriting previous mapping",
-          call. = F
-        )
-      }
-
-      # Add mapping to list
-      mapping_processed[[m]] <- mapping[[m]]
-    }
-
-    # Add mappings to genemap object
-    genemap_obj$mapping <- mapping_processed
-
-  }
+  # Validate mappings and add to plot object
+  genemap_obj$mapping <- validate_mapping(mapping)
 
   # Initialise elements list
   genemap_obj$elements <- list()
@@ -173,12 +165,18 @@ gene_element <- function(data = NULL, mapping = NULL) {
   # Set type
   gene_element_obj$type <- "gene"
 
+  # Validate data and add to element object
+  gene_element_obj <- validate_data(data)
+
+  # Validate mapping and add to element object
+  gene_element_obj <- validate_mapping(mapping)
+
   # Return gene element object
   gene_element_obj
 }
 
 # Overload `+` operator to allow genemapr elements to be easily combined
-`+.genemap` <- function(genemap_obj, y) {
+`+.genemap` <- function(genemap_obj, element) {
 
   # LHS should always be a genemap plot object
   if (!identical(class(genemap_obj), c("genemap"))) {
@@ -189,13 +187,23 @@ gene_element <- function(data = NULL, mapping = NULL) {
   }
 
   # For now, only handles adding element to genemap
-  if (!"element" %in% class(y)) {
+  if (!"element" %in% class(element)) {
     stop("Haven't yet implemented adding anything but elements", call. = F)
   }
 
+  # If element does not have data associated, inherit from plot object
+  if (is.null(element$data)) {
+    element$data <- genemap_obj$data
+  }
+
+  # If element does not have mapping associated, inherit from plot object
+  if (is.null(element$mapping)) {
+    element$mapping <- genemap_obj$mapping
+  }
+
   # Add element
-  if (identical(class(y), c("genemap", "element"))) {
-    genemap_obj$elements <- c(genemap_obj$elements, y)
+  if (identical(class(element), c("genemap", "element"))) {
+    genemap_obj$elements <- c(genemap_obj$elements, element)
   }
 
   # Return genemap plot object
@@ -216,8 +224,22 @@ print.genemap <- function(genemap_obj) {
     dev.new()
   }
 
+  # Determine how many molecules will be drawn, and the order they will be drawn in
+  molecules <- character()
+  for (element in genemap_obj$elements) {
+    element_molecules <- element$data[[element$mapping["molecule"]]]
+    molecules <- c(molecules, element_molecules)
+  }
+  molecules <- unique(molecules)
+  molecules_n <- length(molecules)
+
   # Determine how many tracks will be drawn, and the order they will be drawn in
-  tracks <- get_aes(genemap_obj, "track") %>% unique %>% as.factor
+  tracks <- character()
+  for (element in genemap_obj$elements) {
+    element_tracks <- element$data[[element$mapping["track"]]]
+    tracks <- c(tracks, element_tracks)
+  }
+  tracks <- unique(tracks)
   tracks_n <- length(tracks)
 
   # Set up plot area
@@ -280,7 +302,7 @@ print.genemap <- function(genemap_obj) {
     # Get track name
     track <- tracks[track_i] %>% as.character
 
-    # Determine range of all elements in this track
+    # Determine how many molecules are to be drawn in this track
     starts <- genemap_obj$data[get_aes(genemap_obj, "track") == track,][[unmap(genemap_obj)$start]]
     ends <- genemap_obj$data[get_aes(genemap_obj, "track") == track,][[unmap(genemap_obj)$end]]
     track_min <- min(c(starts, ends))
