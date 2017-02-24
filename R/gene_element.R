@@ -4,7 +4,7 @@ gene_element <- function(data = NULL, mapping = NULL) {
   # Initialise gene element object
   gene_element_obj <- structure(
     list(),
-    class = c("genemap", "element", "gene_element")
+    class = c("gene_element", "genemap")
   )
 
   # If data was provided, validate and add to the gene element object

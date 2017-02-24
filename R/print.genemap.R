@@ -153,4 +153,12 @@ print.genemap <- function(genemap_obj) {
     # Return to parent viewport (plot area)
     upViewport()
   }
+
+  # Call print function for each plot element
+  for (element in genemap_obj$elements) {
+    print(element)
+  }
+
+  # Return to root viewport
+  upViewport(0)
 }

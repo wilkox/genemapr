@@ -2,32 +2,6 @@ library(grid)
 library(stringr) # TESTING ONLY
 library(magrittr) # TESTING ONLY
 
-# Draw a gene
-# Draws to the current viewport, in the native coordinate system
-draw_gene <- function(Start, End, Fill) {
-
-  # Determine orientation
-  Orientation <- ifelse(End > Start, 1 , -1)
-
-  # Arrow head width defaults to 4 mm, unless the gene is shorter in which case
-  # the gene is 100% arrowhead
-  ArrowHeadWidth <- unit(4, "mm") %>% convertWidth("native")
-  ArrowHeadWidth <- ifelse(
-    as.numeric(ArrowHeadWidth) > abs(Start - End),
-    abs(Start - End),
-    ArrowHeadWidth
-  )
-
-  # Calculate x-position of flange
-  Flange <- (-Orientation * ArrowHeadWidth) + End
-
-  # Draw gene
-  grid.polygon(
-    x = unit(c(Start, Start, Flange, Flange, End, Flange, Flange), "native"),
-    y = unit(c(0.55, 0.45, 0.45, 0.4, 0.5, 0.6, 0.55), "npc"),
-    gp = gpar(col = "black", fill = Fill)
-  )
-}
 
 # Draw a molecule
 # Creates a new viewport for the molecule, pushed to parent viewport in the
