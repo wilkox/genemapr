@@ -1,4 +1,16 @@
-# Set up a genemap plot object
+#' @title Draw a gene map
+#' @export
+#' @family genemapr
+#'
+#' @description
+#' The ‘genemapr’ package uses a ggplot2-like paradigm to draw maps of genes on
+#' a molecule.
+#'
+#' @param data Data frame containing default data to be used in drawing the gene
+#' map. This default will be used by any plot element that is not given an
+#' explicit dataset. Can be left as NULL.
+#' @param mapping Default mapping between columns in data and plot aesthetics.
+#' Must be a named character vector. Can be left as NULL.
 genemap <- function(data = NULL, mapping = NULL) {
 
   # Initialise genemap plot object

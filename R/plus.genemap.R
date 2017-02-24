@@ -1,4 +1,5 @@
-# Overload `+` operator to allow genemapr elements to be easily combined
+#' Overload `+` operator to allow genemapr elements to be easily combined. Not
+#' for export.
 `+.genemap` <- function(genemap_obj, element) {
 
   # LHS should always be a genemap plot object

@@ -1,4 +1,4 @@
-# Print function for gene elements
+#' Print function for gene elements. Not for export.
 print.gene_element <- function(element) {
 
   # Gather list of tracks for this element
@@ -55,7 +55,8 @@ print.gene_element <- function(element) {
   }
 }
 
-# Draws a gene arrow to the current viewport, in the native coordinate system
+#' Draws a gene arrow to the current viewport, in the native coordinate system.
+#' Not for export.
 draw_gene_arrow <- function(start, end, fill) {
 
   # Determine orientation

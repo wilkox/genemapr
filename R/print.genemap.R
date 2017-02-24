@@ -1,4 +1,4 @@
-# Print function for genemap
+#' Print function for the plot object. Sets up plot area. Not for export.
 print.genemap <- function(genemap_obj) {
 
   # To print, there must be at least one plot element
