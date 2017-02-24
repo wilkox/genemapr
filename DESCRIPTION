@@ -6,4 +6,4 @@ Description: Draws gene layout maps in a grammar-of-graphics like paradigm
 Depends: R (>= 3.3.2)
 License: GPL-2
 LazyData: true
-Import: griq
+Import: grid, dplyr (>= 0.5.0)
