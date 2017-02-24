@@ -137,25 +137,6 @@ validate_mapping <- function(mapping) {
   mapping_processed
 }
 
-# Function to set up a genemap plot object
-genemap <- function(data = NULL, mapping = NULL) {
-
-  # Initialise genemap plot object
-  genemap_obj <- structure(list(), class = "genemap")
-
-  # Validate data and add to plot object
-  genemap_obj$data <- validate_data(data)
-
-  # Validate mappings and add to plot object
-  genemap_obj$mapping <- validate_mapping(mapping)
-
-  # Initialise elements list
-  genemap_obj$elements <- list()
-
-  # Return genemap object
-  genemap_obj
-}
-
 # Gene element
 gene_element <- function(data = NULL, mapping = NULL) {
 

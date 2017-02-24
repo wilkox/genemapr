@@ -1,0 +1,9 @@
+Package: genemapr
+Title: Draw gene layout maps
+Version: 0.1
+Authors@R: person("David", "Wilkins", email = "david@wilkox.org", role = c("aut", "cre"))
+Description: Draws gene layout maps in a grammar-of-graphics like paradigm
+Depends: R (>= 3.3.2)
+License: GPL-2
+LazyData: true
+Import: griq
