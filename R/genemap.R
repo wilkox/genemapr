@@ -29,6 +29,9 @@ genemap <- function(data = NULL, mapping = NULL) {
   # Initialise elements list
   genemap_obj$elements <- list()
 
+  # Initialise scales list
+  genemap_obj$scales <- list()
+
   # Return genemap object
   genemap_obj
 }

@@ -38,14 +38,18 @@ print.gene_element <- function(element) {
       # Draw genes
       for (gene_i in 1:nrow(genes)) {
 
+        # Get scaled fill for this gene
+        fill_value <- genes[gene_i, "fill"] %>% as.character
+        scaled_fill <- element$scales[["fill"]][fill_value]
+
         # Draw the gene as an arrow
         draw_gene_arrow(
           start = genes[gene_i, "start"],
           end = genes[gene_i, "end"],
-          fill = genes[gene_i, "fill"] %>% as.character
+          fill = scaled_fill
         )
       }
-    
+
       # Return to parent viewport (track)
       upViewport()
     }

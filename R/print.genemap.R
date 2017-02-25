@@ -12,6 +12,41 @@ print.genemap <- function(genemap_obj) {
     stop("This plot has no plot elements (try ‘gene_element’)", call. = F)
   }
 
+  # Set up scales
+  # This is a pretty straightforward process: currently, each scale (stored in
+  # $scales) is a function that will take a list of values to be drawn in the
+  # plot and return a list of scaled values. For each scaled aesthetic, we draw
+  # together a list of values for that aesthetic in the plot, apply the
+  # function, and put the result back into $scales as a lookup table.
+  # TODO need an intelligent way to gather list of aesthetics to be scaled; for
+  # now, will just use fill
+  for (aesthetic in c("fill")) {
+
+    # If not scale was specified, set the default
+    # TODO this should work for more aesthetics than just fill
+    if (!aesthetic %in% names(genemap_obj$scales)) {
+      genemap_obj$scales[["fill"]] <- fill_scale_discrete_default()
+    }
+
+    # Gather together all values for this aesthetic across all elements
+    scale_values <- genemap_obj$elements %>%
+      lapply(function(element) element$data[[aesthetic]]) %>%
+      unlist %>%
+      unique
+
+    # Apply scale function to produce mapping
+    scale <- genemap_obj$scales[[aesthetic]](scale_values)
+
+    # Replace scale function with scaled values
+    genemap_obj$scales[[aesthetic]] <- scale
+
+    # Propagate scale down to elements
+    for (element_i in 1:length(genemap_obj$elements)) {
+      genemap_obj$elements[[element_i]]$scales[[aesthetic]] <- scale
+    }
+  }
+
+
   # Call plot.new to draw a new plot in the existing device, or open a new
   # device if needed
   plot.new()
