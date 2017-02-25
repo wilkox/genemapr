@@ -1,8 +1,7 @@
 #' Print function for the plot object. Sets up plot area. Not for export.
 print.genemap <- function(genemap_obj) {
 
-  # Always return to the root viewport on exit, to prevent plot weirdness if an
-  # error is thrown
+  # Always return to the root viewport on exit
   on.exit(
     upViewport(0)
   )
@@ -46,7 +45,6 @@ print.genemap <- function(genemap_obj) {
     }
   }
 
-
   # Call plot.new to draw a new plot in the existing device, or open a new
   # device if needed
   plot.new()
@@ -63,7 +61,14 @@ print.genemap <- function(genemap_obj) {
 
   # Set up master drawing area (basically an inset rectangle inside the output
   # page, just to have some margins around the drawing area)
+  # TODO for now we are hardcoding in a fill legend
   viewport(
+    layout = grid.layout(
+      2,
+      1,
+      widths = unit(1, "npc"),
+      heights = unit(c(0.1, 0.9), "npc")
+    ),
     height = unit(0.8, "npc"),
     width = unit(0.8, "npc"),
     name = "master"
@@ -73,8 +78,87 @@ print.genemap <- function(genemap_obj) {
   # Draw big red border around plot area
   grid.rect(gp = gpar(col = "red"))
 
+  # TODO for now, drawing fill legend manually
+  # Set up legend viewport
+  viewport(
+    layout.pos.col = 1,
+    layout.pos.row = 1,
+    height = unit(1, "npc"),
+    width = unit(1, "npc"),
+    name = "legend_area"
+  ) %>% pushViewport
+
+  # Apply scale function to produce mapping
+  scaled_fills <- genemap_obj$scales[["fill"]]
+
+  # Calculate the total width of the legend keys
+  # Here is the rough layout of a single key, values in mm:
+  #  2 4  2  3  strwidth    5   = 16 mm + strwidth
+  #      \
+  # | |-- \                  |
+  # | |    >    nameofthing  |
+  # | |-- /                  |
+  #      /
+  key_widths <- unit(scaled_fills %>% names %>% strwidth(cex = 0.5), "inches") + unit(16, "mm")
+  legend_width <- sum(key_widths)
+
+  # Create viewport for keys, centered in legend area, with layout for keys
+  viewport(
+    layout = grid.layout(
+      1,
+      length(scaled_fills),
+      heights = unit(9, "mm"),
+      widths = key_widths
+    ),
+    height = unit(1, "npc"),
+    width = legend_width,
+    just = "centre",
+    name = "legend_keys"
+  ) %>% pushViewport
+
+  # Draw key for each unit in the scale
+  for (key_i in 1:length(scaled_fills)) {
+  
+    # Create viewport for key
+    viewport(
+      layout.pos.col = key_i,
+      layout.pos.row = 1,
+      height = unit(1, "npc"),
+      width = key_widths[key_i]
+    ) %>% pushViewport
+
+    # Draw arrow
+    arrow_fill <- scaled_fills[key_i]
+    grid.polygon(
+      x = unit(c(2, 2, 6, 6, 8, 6, 6, 2), "mm"),
+      y = unit(c(6, 3, 3, 2, 4.5, 7, 6, 6), "mm"),
+      gp = gpar(col = "black", fill = arrow_fill)
+    )
+
+    # Draw key text
+    grid.text(
+      names(scaled_fills)[key_i],
+      just = c("left", "centre"),
+      x = unit(9, "mm"),
+      y = unit(4.5, "mm"),
+      gp = gpar(cex = 0.5)
+    )
+
+    # Return to keys area
+    upViewport()
+  
+  }
+
+  # Return to legend area
+  upViewport()
+
+  # Return to master drawing area
+  upViewport()
+
   # Set up plot area viewport, with grid layout
   viewport(
+    layout.pos.col = 1,
+    layout.pos.row = 2,
     layout = grid.layout(
       tracks_n,
       2,
@@ -97,9 +181,6 @@ print.genemap <- function(genemap_obj) {
       just = "bottom"
     ) %>%
       pushViewport
-
-    # Draw border
-    grid.rect(gp = gpar(col = "grey"))
 
     # Add track label
     grid.text(
@@ -143,9 +224,6 @@ print.genemap <- function(genemap_obj) {
       ) %>%
       pushViewport
 
-    # Draw blue border around track viewport
-    grid.rect(gp = gpar(col = "blue"))
-
     # Create a viewport for each molecule
     for (molecule_i in 1:track_molecules_n) {
 
@@ -173,9 +251,6 @@ print.genemap <- function(genemap_obj) {
         xscale = c(molecule_min, molecule_max)
       ) %>%
         pushViewport
-
-      # Draw green border around molecule viewport
-      grid.rect(gp = gpar(col = "green"))
     
       # Draw string
       grid.lines(
