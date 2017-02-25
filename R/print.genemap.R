@@ -1,6 +1,12 @@
 #' Print function for the plot object. Sets up plot area. Not for export.
 print.genemap <- function(genemap_obj) {
 
+  # Always return to the root viewport on exit, to prevent plot weirdness if an
+  # error is thrown
+  on.exit(
+    upViewport(0)
+  )
+
   # To print, there must be at least one plot element
   if (length(genemap_obj$elements) == 0) {
     stop("This plot has no plot elements (try ‘gene_element’)", call. = F)
@@ -158,7 +164,4 @@ print.genemap <- function(genemap_obj) {
   for (element in genemap_obj$elements) {
     print(element)
   }
-
-  # Return to root viewport
-  upViewport(0)
 }

@@ -42,7 +42,7 @@ print.gene_element <- function(element) {
         draw_gene_arrow(
           start = genes[gene_i, "start"],
           end = genes[gene_i, "end"],
-          fill = genes[gene_i, "fill"]
+          fill = genes[gene_i, "fill"] %>% as.character
         )
       }
     
@@ -69,7 +69,7 @@ draw_gene_arrow <- function(start, end, fill) {
     as.numeric(arrowhead_width) > abs(start - end),
     abs(start - end),
     arrowhead_width
-  )
+  ) %>% as.numeric
 
   # Calculate x-position of flange
   flange <- (-orientation * arrowhead_width) + end
